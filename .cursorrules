@@ -1,0 +1,965 @@
+# Teams Meeting Analyzer - Cursor Rules
+# Generated based on AI code analysis and common error patterns
+
+## General Development Rules
+
+### Error Handling
+- Always wrap API calls in try-catch blocks with specific error handling
+- Never return generic error messages - provide context about what failed
+- Log errors with sufficient detail for debugging
+- Implement retry logic for transient failures (network, API rate limits)
+
+### Microsoft Graph API Usage
+- Always check for proper OAuth permissions before making Graph API calls
+- Implement proper rate limiting to avoid throttling
+- Use batch requests when possible to reduce API calls
+- Cache frequently requested data (user info, meeting details) appropriately
+- Always validate API responses before processing
+
+### Real-time Processing
+- Use async/await for all I/O operations
+- Implement proper queue management for high-volume data streams
+- Add performance monitoring for critical paths
+- Use streaming APIs when available instead of polling
+- Implement circuit breakers for external dependencies
+
+### LLM Integration Best Practices
+- Always use the @track decorator for LLM calls when using Opik
+- Implement proper prompt templates to avoid injection attacks
+- Add input validation for all user-provided content
+- Use gpt-4o-mini for API calls as specified in project requirements
+- Cache LLM responses when appropriate to reduce costs
+- Implement fallback responses for LLM failures
+
+### Security & Privacy
+- Never log sensitive meeting content or user data
+- Implement proper data encryption for stored analysis results
+- Use environment variables for all API keys and secrets
+- Validate and sanitize all input data
+- Implement proper consent flows for data processing
+
+### Code Quality
+- Use TypeScript for frontend code with strict mode enabled
+- Implement proper type definitions for all API responses
+- Use consistent naming conventions (camelCase for variables, PascalCase for classes)
+- Add comprehensive JSDoc comments for all public functions
+- Implement unit tests for all business logic functions
+
+### Performance Optimization
+- Use debouncing for real-time analysis to avoid excessive API calls
+- Implement proper memory management for long-running processes
+- Use Web Workers for CPU-intensive tasks in the frontend
+- Optimize overlay UI rendering to avoid blocking the main thread
+- Implement proper cleanup for event listeners and subscriptions
+
+### Teams Integration Specific
+- Always check if Teams context is available before accessing it
+- Implement graceful degradation when Teams APIs are unavailable
+- Use proper Teams SDK methods instead of direct API calls when possible
+- Handle Teams app lifecycle events properly
+- Implement proper authentication flow for Teams apps
+
+## Commit Message Rules
+- Use concise, descriptive commit messages
+- Start with a verb in present tense (Add, Fix, Update, Remove)
+- Keep the first line under 50 characters
+- Reference issue numbers when applicable
+
+## Testing Requirements
+- Write unit tests for all utility functions
+- Mock external API calls in tests
+- Test error scenarios and edge cases
+- Use pytest for Python tests with proper fixtures
+- Implement integration tests for critical workflows
+
+## Documentation
+- Update README.md when adding new features
+- Document all environment variables required
+- Add inline comments for complex business logic
+- Keep API documentation up to date 
+
+# Rule Generated from Failed Suggestion - 2025-06-20 17:23:04
+# Original Query: Create a Teams meeting analyzer with real-time sentiment analysis...
+# Error: OpenAI API key authentication failed...
+
+```markdown
+# Cursor Rules to Prevent Authentication Errors in AI Agent Suggestions
+
+## Analysis of the Mistake
+1. **What the AI agent did wrong:**
+   - The AI agent provided a code snippet that relies on the OpenAI API for sentiment analysis without checking for authentication requirements.
+   - It did not mention the necessity of acquiring and configuring an API key, leading to a failure at runtime (`AuthenticationError`).
+
+2. **What it should have done instead:**
+   - The AI agent should have included clear instructions for the user on how to obtain an OpenAI API key.
+   - It should have suggested error handling in the code to catch authentication errors and provide feedback to the user.
+
+## Specific Rules to Prevent this Pattern
+
+### Rule 1: API Key Requirement Notice
+- **Description**: Always check if the code provided requires an API key or sensitive credentials.
+- **Implementation**: When generating code for any API interaction, include a note advising the user to obtain and set up necessary API keys.
+  
+### Rule 2: Include Error Handling
+- **Description**: Always incorporate basic error handling when providing code for external service interactions.
+- **Implementation**: Suggest wrapping API calls in a try-except block to gracefully catch and handle authentication issues.
+
+### Rule 3: Use Environment Variables for API Keys
+- **Description**: Instruct the user to use environment variables for storing API keys instead of hardcoding them.
+- **Implementation**: Provide a code snippet that demonstrates loading the API key from an environment variable.
+
+## Code Examples
+
+### Incorrect Approach
+```python
+import openai
+
+def analyze_sentiment(text):
+    response = openai.Completion.create(
+        engine="text-davinci-003",
+        prompt=text,
+        max_tokens=100
+    )
+    return response.choices[0].text.strip()
+```
+*Error: This code lacks context for API key authentication and will fail with AuthenticationError.*
+
+### Correct Approach
+```python
+import os
+import openai
+
+# Load OpenAI API key from environment variable
+API_KEY = os.getenv("OPENAI_API_KEY")
+if not API_KEY:
+    raise ValueError("API key not found. Please set the OPENAI_API_KEY environment variable.")
+
+openai.api_key = API_KEY
+
+def analyze_sentiment(text):
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=text,
+            max_tokens=100
+        )
+        return response.choices[0].text.strip()
+    except openai.error.AuthenticationError:
+        return "Authentication failed. Please check your API key."
+```
+*This corrected approach provides clear instructions, proper error handling, and suggests using an environment variable for API key storage.*
+```
+
+
+
+# Rule Generated from Failed Suggestion - 2025-06-20 17:28:01
+# Original Query: File modification: demo_test.py...
+# Error: FAIL: Potential runtime error in `buggy_function` due to usage of an undefined variable....
+
+```markdown
+# Cursor Rules to Prevent AI Agent Mistakes in Code Modification
+
+## Rule 1: Validate Code Changes for Existing Errors
+### Description
+The AI agent should not make modifications to a code file if it contains potential errors that could lead to runtime failures, such as undefined variables.
+
+### What the AI Agent Did Wrong
+The agent modified `demo_test.py` without checking if the code contained any potential runtime errors, specifically within `buggy_function`.
+
+### What It Should Have Done Instead
+The agent should evaluate the code for syntax and runtime errors before making any modifications.
+
+### Example of Incorrect Approach
+```python
+def buggy_function():
+    """This function has a potential bug to test failure detection"""
+    return undefined_variable + 5  # This will cause a runtime error
+```
+
+### Example of Correct Approach
+```python
+def buggy_function():
+    """This function has been corrected"""
+    defined_variable = 10  # Ensure all variables are defined
+    return defined_variable + 5  # This is safe now
+```
+
+---
+
+## Rule 2: Implement Error Detection Reporting
+### Description
+The AI agent should be equipped to automatically detect and report any potential issues in the code before making modifications.
+
+### What the AI Agent Did Wrong
+The agent failed to detect that `undefined_variable` was referenced, which would lead to runtime failure.
+
+### What It Should Have Done Instead
+Perform static analysis and assert that all variables are defined before modifying the code.
+
+### Example of Incorrect Approach
+```python
+def buggy_function():
+    return undefined_variable + 5  # This will trigger an undefined variable error
+```
+
+### Example of Correct Approach
+```python
+def buggy_function():
+    try:
+        return undefined_variable + 5  # Should never reach this point if checked correctly
+    except NameError:
+        print("Error: undefined_variable is not defined.")
+        return None  # Handle the error appropriately
+```
+
+---
+
+## Rule 3: Before Modification Checks
+### Description
+Perform checks on functions for undefined variables, unused imports, and potential syntax issues before applying modifications to code files.
+
+### What the AI Agent Did Wrong
+The agent did not follow a verification step which leads to altering code containing potential runtime errors.
+
+### What It Should Have Done Instead
+Run a linting or syntax-checking process to catch these issues prior to modification.
+
+### Example of Incorrect Approach
+```python
+def faulty_function():
+    return incorrect + 10  # Directly modifying a function without checks
+```
+
+### Example of Correct Approach
+```python
+def safe_function():
+    defined_variable = 5
+    return defined_variable + 10  # Modifications would only occur on verified functions
+```
+
+---
+
+## Rule 4: User Confirmation for Significant Modifications
+### Description
+The AI agent should request user confirmation before applying modifications that could alter code behavior significantly, especially if potential issues are detected.
+
+### What the AI Agent Did Wrong
+The agent modified the script without any user confirmation, despite detecting a clearly defined error in logic.
+
+### What It Should Have Done Instead
+Notify the user of potential issues and ask for permission to modify the function or guide them on cleaning it up first.
+
+### Example of Incorrect Approach
+```python
+# Automatically changing code without user consent
+```
+
+### Example of Correct Approach
+```python
+potential_issues = check_for_errors(demo_test.py)
+if potential_issues:
+    notify_user(potential_issues)
+    user_choice = request_user_confirmation()  # Ask for user action
+    if user_choice == "proceed":
+        apply_modifications()
+```
+
+---
+
+# Conclusion
+By implementing these rules, we can significantly reduce the number of errors introduced by the AI agent during code modifications. Always ensure that checks are performed, issues are reported, confirmations are requested, and that existing code does not contain unresolved issues prior to making changes.
+```
+
+
+
+# Rule Generated from Failed Suggestion - 2025-06-20 17:30:34
+# Original Query: File modification: demo_test.py...
+# Error: FAIL: 
+1. Potential runtime error in `buggy_function` due to an undefined variable (`undefined_varia...
+
+```markdown
+# Cursor Rules for Preventing AI Agent Mistakes in Code Modifications
+
+## Rule 1: Validate Code Integrity Before Modification
+### What the AI agent did wrong:
+The agent modified the file without validating the content, resulting in the introduction of a potential runtime error (`undefined_variable`).
+
+### What it should have done instead:
+The agent should have checked the code for undefined variables, potential runtime errors, and syntactic correctness prior to making modifications.
+
+### Specific Cursor Rule:
+- **Rule ID:** CURSOR_RULE_UNDEFINED_VARIABLE
+- **Description:** Do not modify files containing undefined variables or that may lead to runtime errors.
+- **Implementation:** Perform a static analysis check for undefined variables before any modification.
+
+### Code Example:
+- **Incorrect Approach:**
+    ```python
+    def buggy_function():
+        return undefined_variable + 5  # This causes a runtime error
+    ```
+
+- **Correct Approach:**
+    ```python
+    def buggy_function():
+        undefined_variable = 10  # Define the variable first
+        return undefined_variable + 5
+    ```
+
+---
+
+## Rule 2: Detect Security Vulnerabilities in Code
+### What the AI agent did wrong:
+The agent allowed modifications that introduced potential security vulnerabilities, such as SQL injection and command injection risks.
+
+### What it should have done instead:
+The agent should have evaluated the security implications of code modifications and flagged any vulnerabilities before updating the file.
+
+### Specific Cursor Rule:
+- **Rule ID:** CURSOR_RULE_SECURITY_VULNERABILITIES
+- **Description:** Do not permit modifications that introduce SQL or command injection vulnerabilities.
+- **Implementation:** Analyze for security best practices, especially in user input handling, before making modifications.
+
+### Code Example:
+- **Incorrect Approach:**
+    ```python
+    user_input = "malicious_input"
+    sql_query = f"SELECT * FROM users WHERE name = '{user_input}'"  # SQL Injection risk
+    ```
+
+- **Correct Approach:**
+    ```python
+    user_input = "malicious_input"
+    sql_query = "SELECT * FROM users WHERE name = %s"  # Use parameterized queries
+    ```
+
+---
+
+## Rule 3: Enforce Safe Function Practices
+### What the AI agent did wrong:
+The modification included functions using unsafe practices like `eval()` that pose a major security risk.
+
+### What it should have done instead:
+The agent should have looked for unsafe function usage (like `eval`, `exec`, `os.system`) and suggested safer alternatives.
+
+### Specific Cursor Rule:
+- **Rule ID:** CURSOR_RULE_UNSAFE_FUNCTIONS
+- **Description:** Prohibit use of potentially unsafe functions (e.g., eval, exec) in code modifications.
+- **Implementation:** Flag any instance of such functions and suggest safer coding practices.
+
+### Code Example:
+- **Incorrect Approach:**
+    ```python
+    user_input = "__import__('os').system('rm -rf /')"  # Dangerous command execution
+    eval(user_input)  # This can lead to execution of arbitrary code
+    ```
+
+- **Correct Approach:**
+    ```python
+    import subprocess
+    user_input = ["ls", "-l"]
+    subprocess.run(user_input)  # Safer execution of commands without eval
+    ```
+
+---
+
+## Summary
+Implementing these specific cursor rules will help prevent AI agents from making modifications that lead to runtime errors, security vulnerabilities, and unsafe practices in the code.
+```
+
+
+
+# Rule Generated from Failed Suggestion - 2025-06-20 17:30:48
+# Original Query: File modification: demo_test.py...
+# Error: FAIL: 
+1. **Syntax Error**: The `inefficient_function` has a comment that seems to be cut off: `# O(...
+
+```markdown
+# Cursor Rules to Prevent AI Agent Mistakes in File Modification
+
+## 1. Issues with Agent's Response
+The AI agent made modifications to a code file without fully assessing the code for:
+- **Syntax Errors**: The presence of incomplete comments or statements that could lead to confusion or syntax errors.
+- **Potential Bugs**: The inclusion of undefined variables can lead to runtime errors.
+- **Security Vulnerabilities**: User input being directly used in commands or SQL queries without proper sanitization poses security risks.
+- **Incomplete Context**: Cutting off code comments can result in misunderstanding of code function and purpose.
+
+## 2. Expected Behavior 
+The AI agent should:
+- Analyze the code thoroughly for any syntactical, logical, or security issues before making modifications.
+- Provide detailed descriptions of any changes it proposes, particularly if they involve fundamental code structure.
+- Refuse to operate on code that contains serious issues until those issues are resolved.
+
+## 3. Cursor Rules
+
+### Rule 1: Prevent Modifications with Syntax Errors
+```plaintext
+# Do not modify code containing syntax errors.
+# Check for improperly closed comments or syntax issues before proceeding with modifications.
+```
+
+### Rule 2: Detect and Halt on Potential Bugs
+```plaintext
+# Do not modify code if it contains potential bugs (e.g., undefined variables, functions, etc.).
+# Verify that all variables referenced within functions have been defined beforehand.
+```
+
+### Rule 3: Identify and Block Security Vulnerabilities
+```plaintext
+# Do not modify code if it contains security vulnerabilities, such as:
+# - Direct user input usage in SQL queries.
+# - Unsafe command execution via functions like os.system.
+# - Use of eval on user inputs.
+# Ensure proper input validation and sanitization before allowing any modifications.
+```
+
+### Rule 4: Ensure Complete Context Before Modifications
+```plaintext
+# Require complete and clearly defined comments and code structures before modifying.
+# Notify the user if any comments or logical sections appear cut off or confusing.
+```
+
+## 4. Code Examples
+
+### Correct Approach
+```python
+# Demo file to test automatic agent monitoring
+import os
+import requests
+
+def hello_world():
+    print("Hello, World!")
+    return "success"
+
+def test_function():
+    """This is a new function to test monitoring"""
+    result = hello_world()
+    if result == "success":
+        print("Test passed!")
+    return result
+
+def secure_function(user_input):
+    """This function safely handles user input"""
+    sanitized_input = sanitize(user_input)
+    # Process the sanitized input here safely
+    return sanitized_input
+
+def sanitize(user_input):
+    # Implement sanitization logic to prevent injections
+    return user_input  # Dummy implementation for an example
+```
+
+### Incorrect Approach
+```python
+import requests
+
+def hello_world():
+    print("Hello, World!")
+    return "success"
+
+def insecure_function(user_input):
+    """Potentially insecure function"""
+    query = f"SELECT * FROM users WHERE name = '{user_input}'"
+    os.system(f"command {user_input}")  # Dangerous use of user input
+    return query
+
+def buggy_function():
+    """This function has a potential bug to test failure detection"""
+    return undefined_variable + 5  # Undefined variable error
+```
+``` 
+
+These rules aim to help prevent modifications that introduce or fail to address critical issues in code files, ensuring a more robust and secure development environment when using AI agents.
+
+
+
+# Rule Generated from Failed Suggestion - 2025-06-20 17:31:03
+# Original Query: File modification: api_client.py...
+# Error: FAIL: 
+1. Missing imports for `requests`, `json`, `datetime`, and `openai`.
+2. Potential runtime err...
+
+```markdown
+# Cursor Rules to Prevent File Modification Errors in AI Agents
+
+## Rule 1: Ensure All Required Imports Are Included
+### What the AI Agent Did Wrong
+The agent modified the file but failed to include necessary imports such as `requests`, `json`, and `datetime`. This omission would result in runtime errors when executing the code.
+
+### What It Should Have Done Instead
+The agent should have checked for missing imports and ensured that the necessary modules were imported before proceeding with any functionality that relies on them.
+
+### Specific Rule
+- **Rule**: All modified files must include necessary imports for any libraries or modules used within the code.
+
+### Example
+**Incorrect Approach:**
+```python
+def fetch_meeting_data(meeting_id):
+    response = requests.get(f"https://graph.microsoft.com/v1.0/meetings/{meeting_id}")
+```
+
+**Correct Approach:**
+```python
+import requests
+import json
+from datetime import datetime
+
+def fetch_meeting_data(meeting_id):
+    response = requests.get(f"https://graph.microsoft.com/v1.0/meetings/{meeting_id}")
+```
+
+---
+
+## Rule 2: Implement Error Handling for External API Calls
+### What the AI Agent Did Wrong
+The agent did not implement any error handling for potential issues with API requests, which could lead to unhandled exceptions and application crashes.
+
+### What It Should Have Done Instead
+The agent should check for response status codes and handle exceptions that could arise during API calls, ensuring a smooth execution flow.
+
+### Specific Rule
+- **Rule**: Every modification involving external API calls must include proper error handling (e.g., check for response status and handle exceptions).
+
+### Example
+**Incorrect Approach:**
+```python
+response = requests.get(f"https://graph.microsoft.com/v1.0/meetings/{meeting_id}")
+data = json.loads(response.text)
+```
+
+**Correct Approach:**
+```python
+response = requests.get(f"https://graph.microsoft.com/v1.0/meetings/{meeting_id}")
+if response.status_code != 200:
+    raise Exception(f"API request failed with status code {response.status_code}")
+data = json.loads(response.text)
+```
+
+---
+
+## Rule 3: Validate Model Names and Initialization Parameters
+### What the AI Agent Did Wrong
+The agent initialized a model without confirming if the model name "gpt-4o-mini" was valid, which could lead to runtime issues. Additionally, the initialization syntax was overly simplified.
+
+### What It Should Have Done Instead
+The agent should validate model names against a list of accepted values based on the applicable API documentation, and ensure correct initialization conforms to library standards.
+
+### Specific Rule
+- **Rule**: Model names and initialization parameters must be validated against official documentation before usage.
+
+### Example
+**Incorrect Approach:**
+```python
+model = "gpt-4o-mini"
+openai_instance = openai.OpenAI()
+```
+
+**Correct Approach:**
+```python
+valid_models = ["gpt-3.5-turbo", "gpt-4"]
+model = "gpt-4o-mini"
+if model not in valid_models:
+    raise ValueError("Invalid model name provided.")
+
+openai_instance = openai.OpenAI(model=model)
+```
+
+---
+
+## Rule 4: Verify Functionality and Structure of API Responses
+### What the AI Agent Did Wrong
+The agent did not account for potential variations in the API response structure, which can lead to errors when accessing properties on the response data.
+
+### What It Should Have Done Instead
+The agent should inspect the expected response structure and implement checks to ensure that the properties exist before accessing them.
+
+### Specific Rule
+- **Rule**: Before accessing properties in API responses, verify that the expected properties exist in the response data.
+
+### Example
+**Incorrect Approach:**
+```python
+data = json.loads(response.text)
+return data['meetingDetails']  # Assumes this key always exists
+```
+
+**Correct Approach:**
+```python
+data = json.loads(response.text)
+if 'meetingDetails' not in data:
+    raise KeyError("'meetingDetails' not found in response data.")
+return data['meetingDetails']
+```
+```
+This markdown includes specific rules addressing the mistakes made by the AI agent, along with examples to illustrate the correct and incorrect approaches. These rules can be added to the `.cursorrules` file to enhance AI agent performance and code reliability.
+
+
+
+# Rule Generated from Failed Suggestion - 2025-06-20 17:31:04
+# Original Query: File modification: syntax_errors.py...
+# Error: FAIL: 
+1. SyntaxError: Missing colon in `if True` statement.
+2. SyntaxError: Mismatched parentheses ...
+
+```markdown
+# Cursor Rules to Prevent Syntax Errors in AI-Generated Code
+
+### Rule 1: Avoid Making Changes to Files with Syntax Errors
+- **What the AI Agent Did Wrong:** The agent modified the `syntax_errors.py` file without validating the syntax.
+- **What it Should Have Done Instead:** The agent should have performed a syntax check on the file before making any modifications.
+
+### Rule 2: Validate Syntax Before Modifications
+- **Guideline:** Always run a syntax checker (e.g., `pyflakes`, `pylint`, or the built-in Python `compile()` function) on the code before applying any modifications.
+
+```python
+# Incorrect Approach
+# (attempted to modify code with syntax errors)
+def broken_function():
+    if True
+        print("Missing colon")
+
+# Correct Approach
+# (Check for syntax errors before making changes)
+try:
+    compile(open('syntax_errors.py').read(), 'syntax_errors.py', 'exec')
+except SyntaxError as e:
+    print(f"Syntax error detected: {e}")
+```
+
+### Rule 3: Provide Clear Error Context in Responses
+- **What the AI Agent Did Wrong:** The agent did not communicate the presence of syntax errors before making modifications, leading to confusion.
+- **What it Should Have Done Instead:** The agent should notify the user about the detected syntax errors and prompt for confirmation before any changes.
+
+### Rule 4: Thoroughly Review all Aspects of Code Changes
+- **Guideline:** Analyze for common pitfalls such as missing colons, mismatched parentheses, incorrect indentation, and undefined function calls before modifying files.
+
+```python
+# Incorrect Approach
+# (Code that has syntax errors)
+result = some_function(arg1, arg2
+
+# Correct Approach
+# (Valid syntax should be confirmed)
+result = some_function(arg1, arg2)  # Correct bracket closure
+```
+
+### Rule 5: Provide Examples of Correctly Written Code
+- **What the AI Agent Did Wrong:** The code provided was syntactically incorrect and not functionally valid.
+- **What it Should Have Done Instead:** Generate or provide code examples that adhere to correct syntax and conventions.
+
+#### Example of Correct vs Incorrect Approach
+
+```python
+# Incorrect Approach
+def another_function():
+print("Wrong indentation")
+
+# Correct Approach
+def another_function():
+    print("Correct indentation")
+```
+
+### Conclusion
+By implementing these specific cursor rules, we can significantly reduce the likelihood of the AI agent making similar mistakes in the future. Regular validation of syntax and clear communication with the user are key elements in ensuring code quality and correctness.
+```
+
+
+
+# Rule Generated from Failed Suggestion - 2025-06-20 17:31:25
+# Original Query: File modification: good_code.py...
+# Error: FAIL: Incomplete function definition for `analyze_transcript`; the method is not fully implemented, ...
+
+```markdown
+# Cursor Rules to Prevent Incomplete Function Definitions in AI Agent Suggestions
+
+## Rule 1: Complete Function Definition Requirement
+### What the AI Agent Did Wrong:
+The AI agent modified the code without ensuring that all functions in the code are fully implemented. In the provided code, the `analyze_transcript` method is incomplete, which would lead to syntax errors upon execution.
+
+### What It Should Have Done Instead:
+The AI agent should verify that all functions in the code have complete implementations before applying any modifications. If a function is found to be incomplete, the agent should either leave the code unchanged or provide a more complete example.
+
+### Specific Rule:
+- **Rule**: All function definitions must be complete before agent modification.
+- **Action**: If a function definition is incomplete (e.g., contains ellipses `...` or comments indicating non-implementation), the agent must abort any modifications and return an error message specifying the incomplete function(s).
+
+### Example of Incorrect Approach:
+```python
+def analyze_transcript(transcript: str) -> Dict[str, int]:
+    """Analyze the transcript and return a count of key phrases."""
+    ...
+```
+
+### Example of Correct Approach:
+```python
+def analyze_transcript(transcript: str) -> Dict[str, int]:
+    """Analyze the transcript and return a count of key phrases."""
+    key_phrase_counts = {}
+    # Implementation here to analyze the transcript
+    return key_phrase_counts
+```
+
+---
+
+## Rule 2: Syntax and Error Checking in Code Before Modification
+### What the AI Agent Did Wrong:
+The agent auto-detected changes and did not check for syntax errors or incomplete code, which could lead to runtime crashes.
+
+### What It Should Have Done Instead:
+Before making any modifications to the existing code, the AI should perform a syntax check and flag any incomplete functions or potential errors.
+
+### Specific Rule:
+- **Rule**: Perform syntax checks and identify incomplete functions before suggesting changes.
+- **Action**: If any functional implementation is detected as incomplete or contains potential syntax errors, do not modify the file and notify the user.
+
+### Example of Incorrect Approach:
+```python
+# Agent proceeds to modify even when there are issues
+analyze_transcript = ...
+```
+
+### Example of Correct Approach:
+```python
+# Agent detects incomplete function and does not proceed
+if "..." in code or incomplete_function_detected:
+    return "Error: Incomplete function definitions. Please complete all functions before modifying."
+else:
+    # Proceed with modifications
+```
+
+---
+
+## Rule 3: Clear Notification upon Detection of Issues
+### What the AI Agent Did Wrong:
+The agent modified the code without notifying the user about the incomplete function, which could lead to confusion or misinterpretation of code state.
+
+### What It Should Have Done Instead:
+Provide clear feedback to the user whenever an incomplete function or error is detected, allowing the user to address the issues directly.
+
+### Specific Rule:
+- **Rule**: Notify users of any incomplete functions found in the code before making changes.
+- **Action**: Always respond to user queries with a report of issues encountered alongside suggested modifications.
+
+### Example of Incorrect Approach:
+```text
+Agent modifies good_code.py without notification.
+```
+
+### Example of Correct Approach:
+```text
+if incomplete_function_detected:
+    return "Modification aborted: Incomplete function 'analyze_transcript' detected."
+else:
+    # Proceed with suggested modifications
+```
+``` 
+
+By implementing these cursor rules, the AI agent will be better equipped to handle modifications intelligently and maintain code integrity.
+```
+
+
+
+# Rule Generated from Failed Suggestion - 2025-06-20 17:33:51
+# Original Query: Create a Teams meeting analyzer with real-time sentiment analysis...
+# Error: OpenAI API key authentication failed...
+
+```markdown
+# Cursor Rules to Prevent AI Agent Errors in Meeting Analyzer Suggestions
+
+## Rule 1: Validate API Key before suggesting code
+- **What the AI agent did wrong:**
+  The agent provided a code snippet without checking if the user has a valid OpenAI API key, leading to authentication errors.
+
+- **What it should have done instead:**
+  The agent should have prompted the user to ensure they have a valid API key or included instructions on how to obtain it before suggesting the code.
+
+- **Example of Incorrect Approach:**
+  ```python
+  import openai
+
+  def analyze_sentiment(text):
+      # Code here to call API
+  ```
+
+- **Example of Correct Approach:**
+  ```python
+  # Ensure user has a valid OpenAI API key
+  print("Please make sure you have a valid OpenAI API key.")
+  import openai
+
+  def analyze_sentiment(text):
+      # Code here to call API
+  ```
+
+---
+
+## Rule 2: Include error handling for API authentication
+- **What the AI agent did wrong:**
+  The agent did not include mechanisms to handle potential authentication errors in the provided code.
+
+- **What it should have done instead:**
+  The agent should include try-except blocks to handle authentication errors gracefully.
+
+- **Example of Incorrect Approach:**
+  ```python
+  response = openai.ChatCompletion.create(...)
+  ```
+
+- **Example of Correct Approach:**
+  ```python
+  try:
+      response = openai.ChatCompletion.create(...)
+  except openai.error.AuthenticationError:
+      print("Authentication failed. Please check your API key.")
+  ```
+
+---
+
+## Rule 3: Provide documentation for usage and setup
+- **What the AI agent did wrong:**
+  The agent failed to guide the user on how to set up the required environment and dependencies.
+
+- **What it should have done instead:**
+  The agent should provide detailed instructions on setting up OpenAI API, including install commands and API key configuration.
+
+- **Best Practice:**
+  ```markdown
+  ## Instructions to set up the OpenAI API
+  1. Install the OpenAI Python package:
+     ```bash
+     pip install openai
+     ```
+  2. Obtain your OpenAI API key from the [OpenAI website](https://openai.com/api/).
+  3. Set the API key in your environment:
+     ```bash
+     export OPENAI_API_KEY='your_api_key_here'
+     ```
+  ```
+
+---
+
+## Rule 4: Suggest testing the solution in an IDE or environment
+- **What the AI agent did wrong:**
+  The agent provided code without advising the user to test it in an appropriate development environment.
+
+- **What it should have done instead:**
+  The agent should encourage the user to run the code in a proper IDE and test for expected outcomes.
+
+- **Best Practice:**
+  ```markdown
+  ## Recommendation
+  Please test the provided code in your preferred IDE (like VS Code, PyCharm, etc.) to ensure that it works with your OpenAI API key setup.
+  ```
+
+---
+```
+
+
+
+# Rule Generated from Failed Suggestion - 2025-06-20 17:34:25
+# Original Query: Create a Teams meeting analyzer with real-time sentiment analysis...
+# Error: OpenAI API key authentication failed...
+
+```markdown
+# Cursor Rules for Preventing Authentication Errors in AI Agent Responses
+
+## Rule 1: Validate API Key Requirements
+### **What Went Wrong:**
+The AI agent assumed access to the OpenAI API without verifying if the user had provided a valid API key.
+
+### **What It Should Have Done:**
+Prompt the user for their OpenAI API key before proceeding with code generation.
+
+### **Preventive Rule:**
+- Ensure the user has provided a valid API key before generating code that requires authentication.
+
+### **Incorrect Approach:**
+```python
+# Agent assumes the API key is available
+import openai
+
+# This will lead to an AuthenticationError if key is missing
+openai.api_key = "YOUR_API_KEY"  # No prompt to user for input
+```
+
+### **Correct Approach:**
+```python
+# Prompt user for their API key
+import openai
+
+# Ask user for their API key before using it
+api_key = input("Please enter your OpenAI API key: ")
+openai.api_key = api_key  # Using user-provided key
+```
+
+---
+
+## Rule 2: Handle Authentication Errors Gracefully
+### **What Went Wrong:**
+The agent provided code without handling potential authentication errors.
+
+### **What It Should Have Done:**
+Include error handling around API calls to manage authentication errors effectively.
+
+### **Preventive Rule:**
+- Implement try-except blocks to manage `AuthenticationError` when calling external APIs.
+
+### **Incorrect Approach:**
+```python
+# No error handling leads to ungraceful failures
+response = openai.ChatCompletion.create(...)
+```
+
+### **Correct Approach:**
+```python
+# Add error handling for authentication issues
+try:
+    response = openai.ChatCompletion.create(...)
+except openai.AuthenticationError:
+    print("Authentication failed. Please check your API key.")
+```
+
+---
+
+## Rule 3: Confirm User Intent and Context
+### **What Went Wrong:**
+The AI agent did not clarify the context or confirm the user’s specific requirements for the sentiment analysis.
+
+### **What It Should Have Done:**
+Ask clarifying questions to better understand the user's intent and ensure the provided solution fits their needs.
+
+### **Preventive Rule:**
+- Always confirm user intent and specific requirements before generating code.
+
+### **Incorrect Approach:**
+```plaintext
+I'll create a Python script that uses OpenAI API...
+```
+
+### **Correct Approach:**
+```plaintext
+To create a Teams meeting analyzer with real-time sentiment analysis, can you please confirm:
+1. Have you set up an OpenAI API key?
+2. What specific features would you like in the sentiment analysis?
+```
+
+--- 
+
+## Rule 4: Provide Documentation Links
+### **What Went Wrong:**
+The AI agent did not offer any references or documentation for the user to check on API usage.
+
+### **What It Should Have Done:**
+Include links to relevant API documentation for authentication and usage.
+
+### **Preventive Rule:**
+- Always provide references to official documentation when discussing API usage.
+
+### **Example Implementation:**
+```plaintext
+You can find the documentation for OpenAI API here: [OpenAI API Documentation](https://beta.openai.com/docs/)
+```
+```
+
+

@@ -21,10 +21,15 @@ from watchdog.events import FileSystemEventHandler
 import subprocess
 import sys
 from datetime import datetime
+from dotenv import load_dotenv
 from agent_learning_system import log_cursor_agent_run, mark_failed, mark_successful, learning_system
 import openai
 from opik.integrations.openai import track_openai
 from opik import track
+from accuracy_config import AccuracyConfig
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Initialize OpenAI for automatic analysis
 openai_client = openai.OpenAI()
@@ -162,53 +167,221 @@ class AgentChangeHandler(FileSystemEventHandler):
     
     @track
     def auto_analyze_code(self, file_path, content, suggestion_id):
-        """Automatically analyze the code for issues"""
+        """Automatically analyze the code for issues with improved accuracy"""
         
         print("🔍 Auto-analyzing code quality...")
+        
+        # Step 1: Syntax validation for Python files
+        syntax_issues = self.validate_syntax(file_path, content)
+        
+        # Step 2: LLM analysis with confidence scoring
+        llm_analysis = self.get_llm_analysis(file_path, content)
+        
+        # Step 3: Combine results and determine confidence
+        final_assessment = self.combine_analysis_results(syntax_issues, llm_analysis, file_path)
+        
+        print(f"🤖 Analysis: {final_assessment['summary']}")
+        print(f"🎯 Confidence: {final_assessment['confidence']}%")
+        
+        # Step 4: Auto-mark only high-confidence failures, otherwise prompt user
+        if final_assessment['should_auto_mark']:
+            if final_assessment['status'] == 'FAIL':
+                print("❌ High-confidence failure detected - Auto-marking as FAILED")
+                mark_failed(suggestion_id, final_assessment['issues'], "HighConfidenceIssue")
+            else:
+                print("✅ High-confidence success - Auto-marking as SUCCESSFUL")
+                mark_successful(suggestion_id)
+        else:
+            print("⚠️ Uncertain analysis - Prompting for human validation")
+            self.prompt_human_validation(suggestion_id, final_assessment)
+    
+    def validate_syntax(self, file_path, content):
+        """Validate syntax for supported file types"""
+        issues = []
+        
+        if file_path.endswith('.py'):
+            try:
+                compile(content, file_path, 'exec')
+                print("✅ Python syntax: VALID")
+            except SyntaxError as e:
+                issue = f"Python SyntaxError at line {e.lineno}: {e.msg}"
+                issues.append(issue)
+                print(f"❌ Python syntax: {issue}")
+            except Exception as e:
+                issues.append(f"Python compilation error: {str(e)}")
+        
+        # Add more syntax validators for other languages as needed
+        # elif file_path.endswith('.js'):
+        #     # Could use a JS syntax validator here
+        
+        return issues
+    
+    def get_llm_analysis(self, file_path, content):
+        """Get LLM analysis with more detailed prompting"""
+        
+        # Use more context - full file if small, or smart truncation
+        max_chars = AccuracyConfig.MAX_ANALYSIS_CHARS
+        if len(content) <= max_chars:
+            code_to_analyze = content
+            context_note = "Full file content"
+        else:
+            # Smart truncation based on configuration
+            if AccuracyConfig.TRUNCATION_STRATEGY == "smart":
+                lines = content.split('\n')
+                if len(lines) > 50:
+                    # Take first 25 and last 25 lines for context
+                    relevant_lines = lines[:25] + ['... (content truncated) ...'] + lines[-25:]
+                    code_to_analyze = '\n'.join(relevant_lines)
+                    context_note = "Truncated content (first/last 25 lines)"
+                else:
+                    code_to_analyze = content[:max_chars] + "..."
+                    context_note = f"Truncated content (first {max_chars} chars)"
+            elif AccuracyConfig.TRUNCATION_STRATEGY == "beginning":
+                code_to_analyze = content[:max_chars] + "..."
+                context_note = f"Truncated content (first {max_chars} chars)"
+            else:  # "end"
+                code_to_analyze = "..." + content[-max_chars:]
+                context_note = f"Truncated content (last {max_chars} chars)"
+        
+        # Get focus areas from configuration
+        focus_areas = AccuracyConfig.get_analysis_prompt_focus()
+        focus_text = "\n".join(f"{i+1}. {area}" for i, area in enumerate(focus_areas))
         
         analysis_prompt = f"""
         Analyze this code file that was just modified by a Cursor AI agent:
         
         File: {Path(file_path).name}
-        Content (first 1000 chars):
+        Context: {context_note}
+        
         ```
-        {content[:1000]}
+        {code_to_analyze}
         ```
         
-        Quickly identify:
-        1. Syntax errors or obvious bugs
-        2. Missing imports or dependencies
-        3. Potential runtime errors
-        4. Security issues
-        5. Performance problems
+        Provide a detailed analysis focusing ONLY on these areas:
+        {focus_text}
         
-        Respond with:
-        - "PASS" if code looks good
-        - "FAIL: [specific issue]" if there are problems
+        IMPORTANT: Only consider the focus areas listed above. Ignore subjective issues like:
+        - Code style preferences
+        - Performance optimizations (unless critical)
+        - Best practice suggestions (unless they cause bugs)
         
-        Be concise but specific.
+        Response format:
+        CONFIDENCE: [1-100]% - How confident are you in this analysis?
+        STATUS: [PASS/FAIL/UNCERTAIN]
+        CRITICAL_ISSUES: [List any critical issues that would prevent code from working]
+        WARNINGS: [List any concerns or improvements needed]
+        REASONING: [Brief explanation of your assessment]
+        
+        Be conservative - only mark as FAIL if you're highly confident there are real functional issues.
         """
         
         try:
             response = openai_client.chat.completions.create(
                 model="gpt-4o-mini",
                 messages=[{"role": "user", "content": analysis_prompt}],
-                max_tokens=300
+                max_tokens=500
             )
             
-            analysis_result = response.choices[0].message.content.strip()
-            print(f"🤖 Analysis: {analysis_result}")
+            return self.parse_llm_response(response.choices[0].message.content.strip())
             
-            # Auto-mark as failed if issues found
-            if analysis_result.upper().startswith("FAIL"):
-                print("❌ Auto-marking as FAILED due to detected issues")
-                mark_failed(suggestion_id, analysis_result, "AutoDetectedIssue")
-            else:
-                print("✅ Code looks good - marking as successful")
-                mark_successful(suggestion_id)
-                
         except Exception as e:
-            print(f"⚠️ Auto-analysis failed: {e}")
+            print(f"⚠️ LLM analysis failed: {e}")
+            return {
+                'confidence': 0,
+                'status': 'UNCERTAIN',
+                'critical_issues': [],
+                'warnings': [f"LLM analysis failed: {str(e)}"],
+                'reasoning': 'Analysis could not be completed'
+            }
+    
+    def parse_llm_response(self, response_text):
+        """Parse the structured LLM response"""
+        result = {
+            'confidence': 50,  # default
+            'status': 'UNCERTAIN',
+            'critical_issues': [],
+            'warnings': [],
+            'reasoning': response_text
+        }
+        
+        lines = response_text.split('\n')
+        for line in lines:
+            line = line.strip()
+            if line.startswith('CONFIDENCE:'):
+                try:
+                    confidence_str = line.split(':', 1)[1].strip().replace('%', '')
+                    result['confidence'] = int(confidence_str)
+                except:
+                    pass
+            elif line.startswith('STATUS:'):
+                status = line.split(':', 1)[1].strip().upper()
+                if status in ['PASS', 'FAIL', 'UNCERTAIN']:
+                    result['status'] = status
+            elif line.startswith('CRITICAL_ISSUES:'):
+                issues_text = line.split(':', 1)[1].strip()
+                if issues_text and issues_text.lower() != 'none':
+                    result['critical_issues'] = [issues_text]
+            elif line.startswith('WARNINGS:'):
+                warnings_text = line.split(':', 1)[1].strip()
+                if warnings_text and warnings_text.lower() != 'none':
+                    result['warnings'] = [warnings_text]
+        
+        return result
+    
+    def combine_analysis_results(self, syntax_issues, llm_analysis, file_path=""):
+        """Combine syntax validation and LLM analysis results"""
+        
+        # Syntax errors always result in failure
+        if syntax_issues:
+            return {
+                'status': 'FAIL',
+                'confidence': 95,  # High confidence in syntax errors
+                'should_auto_mark': True,
+                'issues': f"Syntax errors: {'; '.join(syntax_issues)}",
+                'summary': f"FAIL: Syntax errors detected - {'; '.join(syntax_issues)}"
+            }
+        
+        # Use LLM analysis for other issues
+        confidence = llm_analysis['confidence']
+        status = llm_analysis['status']
+        
+        # Combine critical issues and warnings
+        all_issues = llm_analysis['critical_issues'] + llm_analysis['warnings']
+        issues_text = '; '.join(all_issues) if all_issues else 'No issues detected'
+        
+        # Determine if we should auto-mark based on configuration
+        should_auto_mark = AccuracyConfig.should_auto_mark(status, confidence, file_path)
+        
+        return {
+            'status': status,
+            'confidence': confidence,
+            'should_auto_mark': should_auto_mark,
+            'issues': issues_text,
+            'summary': f"{status}: {issues_text} (Confidence: {confidence}%)"
+        }
+    
+    def prompt_human_validation(self, suggestion_id, assessment):
+        """Prompt user for validation when confidence is low"""
+        
+        print("\n" + "="*60)
+        print("🤔 HUMAN VALIDATION REQUIRED")
+        print("="*60)
+        print(f"Analysis Summary: {assessment['summary']}")
+        print(f"Confidence Level: {assessment['confidence']}%")
+        print("\nThe system is uncertain about this analysis.")
+        print("Please review the code change and provide feedback.")
+        print("\nOptions:")
+        print("  1. Mark as SUCCESSFUL (s)")
+        print("  2. Mark as FAILED (f) - you'll be prompted for error details")
+        print("  3. Skip for manual review later (skip)")
+        print("="*60)
+        
+        # For now, just log that human validation is needed
+        # In a full implementation, you might use input() or a web interface
+        print("⏳ Suggestion marked as PENDING - awaiting human validation")
+        print(f"   Use: python track_agent.py success {suggestion_id}")
+        print(f"   Or:  python track_agent.py failed {suggestion_id} 'error details'")
+        print("="*60 + "\n")
 
 class AutoAgentMonitor:
     def __init__(self):

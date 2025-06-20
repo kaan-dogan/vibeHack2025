@@ -2,9 +2,13 @@ import openai
 from opik.integrations.openai import track_openai
 from opik import track
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configuration
-os.environ["OPIK_API_KEY"] = "rLx8SArNCDqZ5xwZtjTKEfoys" 
+os.environ["OPIK_API_KEY"] = os.getenv("OPIK_API_KEY", "rLx8SArNCDqZ5xwZtjTKEfoys")
 os.environ["OPIK_WORKSPACE"] = "anka"
 
 # Initialize OpenAI client with tracking

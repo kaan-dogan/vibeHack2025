@@ -6,9 +6,13 @@ from opik import track
 import os
 import json
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configuration
-os.environ["OPIK_API_KEY"] = "rLx8SArNCDqZ5xwZtjTKEfoys" 
+os.environ["OPIK_API_KEY"] = os.getenv("OPIK_API_KEY", "rLx8SArNCDqZ5xwZtjTKEfoys")
 os.environ["OPIK_WORKSPACE"] = "anka"
 
 # Set up API keys (you'll need to add your actual keys)

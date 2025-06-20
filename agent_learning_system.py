@@ -5,9 +5,13 @@ import os
 import json
 import datetime
 from typing import Dict, List, Optional
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Configuration
-os.environ["OPIK_API_KEY"] = "rLx8SArNCDqZ5xwZtjTKEfoys" 
+os.environ["OPIK_API_KEY"] = os.getenv("OPIK_API_KEY", "rLx8SArNCDqZ5xwZtjTKEfoys")
 os.environ["OPIK_WORKSPACE"] = "anka"
 
 # Initialize OpenAI client with tracking
